@@ -248,8 +248,14 @@ open class ResourceStatusOverlay: UIView, ResourceObserver
                         { return showSuccess() }
 
                 case .error:
-                    if let error = observedResources.flatMap({ $0.latestError }).first
-                        { return showError(error) }
+                    let closure: (Resource) -> RequestError? = { $0.latestError }
+                    #if swift(>=4.1)
+                        let error = observedResources.compactMap(closure).first
+                    #else
+                        let error = observedResources.flatMap(closure).first
+                    #endif
+                    if error != nil
+                        { return showError(error!) }
                 }
             }
 

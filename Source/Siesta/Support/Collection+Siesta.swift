@@ -53,19 +53,21 @@ internal extension Dictionary
         return Dictionary.fromArray(map(transform))
         }
 
-    func flatMapDict<MappedKey, MappedValue>(transform: (Key, Value) -> (MappedKey?, MappedValue?))
+    func flatMapDict<MappedKey, MappedValue>(transform: @escaping (Key, Value) -> (MappedKey?, MappedValue?))
         -> [MappedKey:MappedValue]
         {
-        return Dictionary.fromArray(
-            flatMap
-                {
-                let (k, v) = transform($0, $1)
-                if let k = k, let v = v
-                    { return (k, v) }
-                else
-                    { return nil }
-                }
-            )
+        let closure: (Key, Value) -> (MappedKey, MappedValue)? = {
+            let (k, v) = transform($0, $1)
+            if let k = k, let v = v
+                { return (k, v) }
+            else
+                { return nil }
+            }
+        #if swift(>=4.1)
+            return Dictionary.fromArray(compactMap(closure))
+        #else
+            return Dictionary.fromArray(flatMap(closure))
+        #endif
         }
 
     mutating func cacheValue(forKey key: Key, ifNone newValue: () -> Value)

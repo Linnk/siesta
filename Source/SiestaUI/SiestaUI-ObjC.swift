@@ -46,13 +46,17 @@ extension ResourceStatusOverlay
             }
 
         set {
-            displayPriority = newValue.flatMap
-                {
+            let closure: (String) -> ResourceStatusOverlay.StateRule? = {
                 let condition = ResourceStatusOverlay.StateRule(rawValue: $0)
                 if condition == nil
                     { print("WARNING: Siesta ignoring unknown ResourceStatusOverlay.StateRule \"\($0)\"") }
                 return condition
                 }
+            #if swift(>=4.1)
+                displayPriority = newValue.compactMap(closure)
+            #else
+                displayPriority = newValue.flatMap(closure)
+            #endif
             }
         }
     }
